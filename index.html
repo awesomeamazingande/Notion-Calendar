@@ -3,45 +3,65 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Custom Calendar Widget</title>
+<title>Notion Calendar Widget</title>
 
 <style>
 :root {
   --card-bg: #f3f3f3;
   --header-bg: #2f2f2f;
   --header-text: #ffffff;
+
   --day-text: #111;
-  --weekday-text: #777;
-  --text: #111;
-  --muted: #777;
   --today-bg: #2f2f2f;
   --today-text: #ffffff;
+  --weekday-text: #777;
+
   --radius: 14px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
   font-family: var(--font);
-  background: #fafafa;
+  background: transparent;
   display: flex;
 }
 
-body.embed {
-  background: transparent;
-  display: none !important;
-}
-
+/* ---------- CONTROLS (HIDDEN BY DEFAULT) ---------- */
 .controls {
   width: 260px;
   padding: 16px;
   background: #ffffff;
   border-right: 1px solid #ddd;
-  display: none !important;
+  display: none;
 }
 
+body.edit .controls {
+  display: block;
+}
+
+.controls h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.control {
+  margin-bottom: 14px;
+}
+
+.control label {
+  font-size: 12px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+/* Circular color pickers */
 .controls input[type="color"] {
   -webkit-appearance: none;
   appearance: none;
@@ -52,64 +72,26 @@ body.embed {
   padding: 0;
   cursor: pointer;
   background: none;
-  display: none !important;
+  box-shadow: 0 0 0 1px #ddd;
 }
 
 .controls input[type="color"]::-webkit-color-swatch-wrapper {
   padding: 0;
-  display: none !important;
 }
 
-.controls input[type="color"]::-webkit-color-swatch {
-  border-radius: 50%;
-  border: none;
-  display: none !important;
-}
-
+.controls input[type="color"]::-webkit-color-swatch,
 .controls input[type="color"]::-moz-color-swatch {
   border-radius: 50%;
   border: none;
-  display: none !important;
 }
 
-.controls input[type="color"] {
-  box-shadow: 0 0 0 1px #ddd;
-  display: none !important;
-}
-
-.controls input[type="color"]:hover {
-  box-shadow: 0 0 0 2px #bbb;
-  display: none !important;
-}
-
-body.embed .controls {
-  display: none;
-  justify-content: center;
-  display: none !important;
-}
-
-.controls h3 {
-  margin: 0 0 12px;
-  font-size: 14px;
-  text-align: center;
-}
-
-.control {
-  margin-bottom: 12px;
-}
-
-.control label {
-  font-size: 12px;
-  display: block;
-  margin-bottom: 4px;
-}
-
+/* ---------- CALENDAR ---------- */
 .calendar-wrapper {
   flex: 1;
-  padding: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 16px;
 }
 
 .calendar-card {
@@ -126,19 +108,13 @@ body.embed .controls {
 .header {
   background: var(--header-bg);
   color: var(--header-text);
-  text-align: center;
-  padding: 8px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 15px;
-  margin-bottom: 10px;
-}
-
-.header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  border-radius: 10px;
+  padding: 6px 8px;
+  margin-bottom: 10px;
+  font-weight: 600;
 }
 
 .header span {
@@ -149,10 +125,9 @@ body.embed .controls {
 .nav {
   background: transparent;
   border: none;
-  color: var(--header-text);
+  color: inherit;
   font-size: 18px;
   cursor: pointer;
-  padding: 2px 6px;
   border-radius: 6px;
 }
 
@@ -164,17 +139,17 @@ body.embed .controls {
 .days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  row-gap: 6px;
 }
 
 .weekdays div {
   text-align: center;
   font-size: 11px;
   color: var(--weekday-text);
-  padding: 4px 0;
+  padding-bottom: 4px;
 }
 
 .days {
+  flex: 1;
   row-gap: 6px;
 }
 
@@ -182,14 +157,19 @@ body.embed .controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
+  font-size: 13px;
   color: var(--day-text);
 }
 
+.today {
+  background: var(--today-bg);
+  color: var(--today-text);
+  font-weight: 600;
+}
+
 .other-month {
-  color: var(--day-text);
   opacity: 0.35;
   cursor: pointer;
 }
@@ -197,109 +177,88 @@ body.embed .controls {
 .other-month:hover {
   opacity: 0.55;
 }
-
-.today {
-  background: var(--today-bg);
-  color: var(--today-text);
-}
 </style>
 </head>
 
 <body>
-  <div class="controls">
-    <h3>Customize</h3>
 
-    <div class="control">
-      <label>Card Background</label>
-      <input type="color" id="cardBg">
-    </div>
+<!-- CONTROLS -->
+<div class="controls">
+  <h3>Customize</h3>
 
-    <div class="control">
-      <label>Header Background</label>
-      <input type="color" id="headerBg">
-    </div>
-
-    <div class="control">
-      <label>Today Circle</label>
-      <input type="color" id="todayBg">
-    </div>
-
-    <div class="control">
-      <label>Border Radius</label>
-      <input type="range" id="radius" min="6" max="24">
-    </div>
-
-    <div class="control">
-  <label>Day Number Color</label>
-  <input type="color" id="dayText">
-</div>
-
-<div class="control">
-  <label>Today Number Color</label>
-  <input type="color" id="todayText">
-</div>
-
-<div class="control">
-  <label>Weekday Text Color</label>
-  <input type="color" id="weekdayText">
-</div>
+  <div class="control">
+    <label>Card Background</label>
+    <input type="color" id="cardBg">
   </div>
 
-  <div class="calendar-wrapper">
-    <div class="calendar-card">
-      <div class="header">
-  <button class="nav" id="prev">‹</button>
-  <span id="monthYear"></span>
-  <button class="nav" id="next">›</button>
+  <div class="control">
+    <label>Header Background</label>
+    <input type="color" id="headerBg">
+  </div>
+
+  <div class="control">
+    <label>Day Number Color</label>
+    <input type="color" id="dayText">
+  </div>
+
+  <div class="control">
+    <label>Weekday Text Color</label>
+    <input type="color" id="weekdayText">
+  </div>
+
+  <div class="control">
+    <label>Today Circle</label>
+    <input type="color" id="todayBg">
+  </div>
 </div>
 
-      <div class="weekdays">
-        <div>S</div><div>M</div><div>T</div>
-        <div>W</div><div>T</div><div>F</div><div>S</div>
-      </div>
-
-      <div class="days" id="days"></div>
+<!-- CALENDAR -->
+<div class="calendar-wrapper">
+  <div class="calendar-card">
+    <div class="header">
+      <button class="nav" id="prev">‹</button>
+      <span id="monthYear"></span>
+      <button class="nav" id="next">›</button>
     </div>
+
+    <div class="weekdays">
+      <div>S</div><div>M</div><div>T</div>
+      <div>W</div><div>T</div><div>F</div><div>S</div>
+    </div>
+
+    <div class="days" id="days"></div>
   </div>
+</div>
 
 <script>
 const root = document.documentElement;
 
-// Load saved settings
+/* Load saved settings */
 const settings = JSON.parse(localStorage.getItem("calendarSettings") || "{}");
-
 for (const key in settings) {
   root.style.setProperty(`--${key}`, settings[key]);
 }
 
-// Controls
-const bind = (id, cssVar) => {
+/* Bind controls */
+function bind(id, cssVar) {
   const input = document.getElementById(id);
   if (!input) return;
 
   input.value = getComputedStyle(root).getPropertyValue(`--${cssVar}`).trim();
-
   input.addEventListener("input", e => {
     root.style.setProperty(`--${cssVar}`, e.target.value);
     settings[cssVar] = e.target.value;
     localStorage.setItem("calendarSettings", JSON.stringify(settings));
   });
-};
+}
 
 bind("cardBg", "card-bg");
 bind("headerBg", "header-bg");
-bind("todayBg", "today-bg");
 bind("dayText", "day-text");
-bind("todayText", "today-text");
 bind("weekdayText", "weekday-text");
+bind("todayBg", "today-bg");
 
-document.getElementById("radius").addEventListener("input", e => {
-  root.style.setProperty("--radius", e.target.value + "px");
-  settings["radius"] = e.target.value + "px";
-  localStorage.setItem("calendarSettings", JSON.stringify(settings));
-});
-
-// Calendar logic
+/* Calendar logic */
 const daysEl = document.getElementById("days");
 const headerEl = document.getElementById("monthYear");
 
@@ -321,22 +280,19 @@ function renderCalendar(date) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-// Previous month days
-for (let i = firstDay - 1; i >= 0; i--) {
-  const day = document.createElement("div");
-  day.className = "day other-month";
-  day.textContent = daysInPrevMonth - i;
+  // Previous month
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const day = document.createElement("div");
+    day.className = "day other-month";
+    day.textContent = daysInPrevMonth - i;
+    day.onclick = () => {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar(currentDate);
+    };
+    daysEl.appendChild(day);
+  }
 
-  day.dataset.offset = -1; // 👈 NEW
-  day.addEventListener("click", () => {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    renderCalendar(currentDate);
-  });
-
-  daysEl.appendChild(day);
-}
-
-  // Current month days
+  // Current month
   for (let d = 1; d <= daysInMonth; d++) {
     const day = document.createElement("div");
     day.className = "day";
@@ -353,23 +309,18 @@ for (let i = firstDay - 1; i >= 0; i--) {
     daysEl.appendChild(day);
   }
 
-  // Next month filler days
-  const totalCells = daysEl.children.length;
-  const remaining = 42 - totalCells;
-
-for (let i = 1; i <= remaining; i++) {
-  const day = document.createElement("div");
-  day.className = "day other-month";
-  day.textContent = i;
-
-  day.dataset.offset = 1; // 👈 NEW
-  day.addEventListener("click", () => {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    renderCalendar(currentDate);
-  });
-
-  daysEl.appendChild(day);
-}
+  // Next month
+  const remaining = 42 - daysEl.children.length;
+  for (let i = 1; i <= remaining; i++) {
+    const day = document.createElement("div");
+    day.className = "day other-month";
+    day.textContent = i;
+    day.onclick = () => {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar(currentDate);
+    };
+    daysEl.appendChild(day);
+  }
 }
 
 document.getElementById("prev").onclick = () => {
@@ -384,17 +335,12 @@ document.getElementById("next").onclick = () => {
 
 renderCalendar(currentDate);
 
-// Embed / Notion detection
+/* EDIT MODE ONLY */
 const params = new URLSearchParams(window.location.search);
-
-if (
-  params.has("embed") ||
-  window.self !== window.top
-) {
-  document.body.classList.add("embed", "in-notion");
+if (params.has("edit")) {
+  document.body.classList.add("edit");
 }
 </script>
+
 </body>
-
 </html>
-
