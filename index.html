@@ -18,29 +18,51 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   width: 100vw;
   height: 100vh;
   background: transparent;
+  overflow: hidden;
 }
 
-/* CALENDAR CONTAINER */
-.calendar {
+/* SCALE FRAME (THE KEY FIX) */
+.scale-frame {
   width: 100%;
-  max-width: 100vh;
-  aspect-ratio: 1 / 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+/* FIXED DESIGN SIZE */
+.calendar {
+  width: 360px;
+  height: 360px;
   background: var(--card-bg);
   border-radius: 16px;
-  padding: 5%;
-
+  padding: 16px;
   display: flex;
   flex-direction: column;
+  position: relative;
+  transform-origin: center;
+}
+
+/* SETTINGS BUTTON */
+.settings {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.calendar:hover .settings {
+  opacity: 1;
 }
 
 /* HEADER */
@@ -48,25 +70,22 @@ body {
   background: var(--header-bg);
   color: var(--header-text);
   border-radius: 10px;
-  padding: 0.6em;
-
+  padding: 8px;
   display: flex;
   align-items: center;
-  flex-shrink: 0;
 }
 
 .header span {
   flex: 1;
   text-align: center;
   font-weight: 600;
-  font-size: 1em;
 }
 
 .header button {
   background: none;
   border: none;
   color: inherit;
-  font-size: 1.2em;
+  font-size: 20px;
   cursor: pointer;
 }
 
@@ -74,37 +93,31 @@ body {
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin-top: 0.6em;
+  margin-top: 8px;
 }
 
 .weekdays div {
   text-align: center;
-  font-size: 0.7em;
+  font-size: 11px;
   color: var(--weekday-text);
 }
 
-/* DAYS GRID */
+/* DAYS */
 .days {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-auto-rows: 1fr;
-  gap: 0.4em;
-  margin-top: 0.4em;
+  gap: 6px;
+  margin-top: 6px;
 }
 
-/* DAY CELL */
 .day {
   display: flex;
   align-items: center;
   justify-content: center;
-
-  aspect-ratio: 1 / 1;
   border-radius: 50%;
-
-  font-size: 0.8em;
+  font-size: 13px;
   color: var(--day-text);
-  cursor: pointer;
 }
 
 .today {
@@ -114,88 +127,92 @@ body {
 
 .other {
   opacity: 0.35;
+  cursor: pointer;
 }
 </style>
 </head>
 
 <body>
 
-<div class="calendar">
-  <div class="header">
-    <button id="prev">‹</button>
-    <span id="title"></span>
-    <button id="next">›</button>
-  </div>
+<div class="scale-frame">
+  <div class="calendar" id="calendar">
+    <div class="settings">Customize</div>
 
-  <div class="weekdays">
-    <div>S</div><div>M</div><div>T</div>
-    <div>W</div><div>T</div><div>F</div><div>S</div>
-  </div>
+    <div class="header">
+      <button id="prev">‹</button>
+      <span id="title"></span>
+      <button id="next">›</button>
+    </div>
 
-  <div class="days" id="days"></div>
+    <div class="weekdays">
+      <div>S</div><div>M</div><div>T</div>
+      <div>W</div><div>T</div><div>F</div><div>S</div>
+    </div>
+
+    <div class="days" id="days"></div>
+  </div>
 </div>
 
 <script>
+const calendar = document.getElementById("calendar");
+
+function scaleCalendar() {
+  const scale = Math.min(
+    window.innerWidth / 360,
+    window.innerHeight / 360
+  );
+  calendar.style.transform = `scale(${scale})`;
+}
+
+window.addEventListener("resize", scaleCalendar);
+scaleCalendar();
+
+/* CALENDAR LOGIC */
 let current = new Date();
 const today = new Date();
-
 const daysEl = document.getElementById("days");
-const titleEl = document.getElementById("title");
+const title = document.getElementById("title");
 
 function render() {
   daysEl.innerHTML = "";
+  const y = current.getFullYear();
+  const m = current.getMonth();
 
-  const year = current.getFullYear();
-  const month = current.getMonth();
-
-  titleEl.textContent = current.toLocaleDateString(undefined, {
+  title.textContent = current.toLocaleDateString(undefined, {
     month: "long",
     year: "numeric"
   });
 
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const prevMonthDays = new Date(year, month, 0).getDate();
+  const first = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const prevDays = new Date(y, m, 0).getDate();
 
-  /* PREVIOUS MONTH */
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const el = document.createElement("div");
-    el.className = "day other";
-    el.textContent = prevMonthDays - i;
-    el.onclick = () => {
-      current.setMonth(month - 1);
-      render();
-    };
-    daysEl.appendChild(el);
+  for (let i = first - 1; i >= 0; i--) {
+    const d = document.createElement("div");
+    d.className = "day other";
+    d.textContent = prevDays - i;
+    d.onclick = () => { current.setMonth(m - 1); render(); };
+    daysEl.appendChild(d);
   }
 
-  /* CURRENT MONTH */
   for (let d = 1; d <= daysInMonth; d++) {
     const el = document.createElement("div");
     el.className = "day";
     el.textContent = d;
-
     if (
       d === today.getDate() &&
-      month === today.getMonth() &&
-      year === today.getFullYear()
-    ) {
-      el.classList.add("today");
-    }
-
+      m === today.getMonth() &&
+      y === today.getFullYear()
+    ) el.classList.add("today");
     daysEl.appendChild(el);
   }
 
-  /* NEXT MONTH */
   while (daysEl.children.length < 42) {
-    const el = document.createElement("div");
-    el.className = "day other";
-    el.textContent = daysEl.children.length;
-    el.onclick = () => {
-      current.setMonth(month + 1);
-      render();
-    };
-    daysEl.appendChild(el);
+    const d = document.createElement("div");
+    d.className = "day other";
+    d.textContent = daysEl.children.length;
+    d.onclick = () => { current.setMonth(m + 1); render(); };
+    daysEl.appendChild(d);
   }
 }
 
