@@ -29,13 +29,9 @@ body {
   display: flex;
 }
 
-  body.embed .controls,
-body.in-notion .controls {
-  display: none !important;
-}
-
 body.embed {
   background: transparent;
+  display: none !important;
 }
 
 .controls {
@@ -43,6 +39,7 @@ body.embed {
   padding: 16px;
   background: #ffffff;
   border-right: 1px solid #ddd;
+  display: none !important;
 }
 
 .controls input[type="color"] {
@@ -55,33 +52,40 @@ body.embed {
   padding: 0;
   cursor: pointer;
   background: none;
+  display: none !important;
 }
 
 .controls input[type="color"]::-webkit-color-swatch-wrapper {
   padding: 0;
+  display: none !important;
 }
 
 .controls input[type="color"]::-webkit-color-swatch {
   border-radius: 50%;
   border: none;
+  display: none !important;
 }
 
 .controls input[type="color"]::-moz-color-swatch {
   border-radius: 50%;
   border: none;
+  display: none !important;
 }
 
 .controls input[type="color"] {
   box-shadow: 0 0 0 1px #ddd;
+  display: none !important;
 }
 
 .controls input[type="color"]:hover {
   box-shadow: 0 0 0 2px #bbb;
+  display: none !important;
 }
 
 body.embed .controls {
   display: none;
   justify-content: center;
+  display: none !important;
 }
 
 .controls h3 {
@@ -393,3 +397,4 @@ if (
 </body>
 
 </html>
+
