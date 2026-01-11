@@ -24,21 +24,22 @@ html, body {
   margin: 0;
   padding: 0;
   background: transparent;
+  overflow: hidden;
 }
 
-/* THIS is what Notion measures */
-#layout {
+/* === NOTION MEASUREMENT FRAME === */
+#frame {
+  position: relative;
   width: 360px;
   height: 360px;
-  position: relative;
 }
 
-/* Visual scaling only */
+/* === PURE VISUAL SCALE === */
 #scale {
   transform-origin: top left;
 }
 
-/* Fixed design — NEVER resizes internally */
+/* === FIXED DESIGN (UNCHANGED) === */
 .calendar {
   width: 360px;
   height: 360px;
@@ -50,40 +51,25 @@ html, body {
   position: relative;
 }
 
-/* SETTINGS ICON */
-.settings-btn {
+/* SETTINGS ICON (HOVER ONLY) */
+.settings {
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.05);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.2s;
 }
 
-.calendar:hover .settings-btn {
+.calendar:hover .settings {
   opacity: 1;
-}
-
-/* SETTINGS PANEL */
-.settings-panel {
-  position: absolute;
-  top: 36px;
-  right: 8px;
-  background: #fff;
-  border-radius: 10px;
-  padding: 10px;
-  font-size: 12px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-  display: none;
-  z-index: 10;
 }
 
 /* HEADER */
@@ -155,15 +141,11 @@ html, body {
 
 <body>
 
-<div id="layout">
+<div id="frame">
   <div id="scale">
-    <div class="calendar">
+    <div class="calendar" id="calendar">
 
-      <div class="settings-btn" id="settingsBtn">⚙</div>
-      <div class="settings-panel" id="settingsPanel">
-        Customization panel<br>
-        (you can add options here)
-      </div>
+      <div class="settings" title="Customize">⚙</div>
 
       <div class="header">
         <button id="prev">‹</button>
@@ -182,34 +164,25 @@ html, body {
 </div>
 
 <script>
-/* ---- SCALING (NO CLIPPING) ---- */
+/* === SCALING (NO DISTORTION, NO CLIP) === */
 const BASE = 360;
-const layout = document.getElementById("layout");
+const frame = document.getElementById("frame");
 const scaleEl = document.getElementById("scale");
 
-function rescale() {
+function scaleCalendar() {
   const w = document.documentElement.clientWidth;
   const h = document.documentElement.clientHeight;
-
   const scale = Math.min(w / BASE, h / BASE);
 
   scaleEl.style.transform = `scale(${scale})`;
-  layout.style.width = `${BASE * scale}px`;
-  layout.style.height = `${BASE * scale}px`;
+  frame.style.width = `${BASE * scale}px`;
+  frame.style.height = `${BASE * scale}px`;
 }
 
-new ResizeObserver(rescale).observe(document.documentElement);
-rescale();
+new ResizeObserver(scaleCalendar).observe(document.documentElement);
+scaleCalendar();
 
-/* ---- SETTINGS TOGGLE ---- */
-const btn = document.getElementById("settingsBtn");
-const panel = document.getElementById("settingsPanel");
-
-btn.onclick = () => {
-  panel.style.display = panel.style.display === "block" ? "none" : "block";
-};
-
-/* ---- CALENDAR LOGIC ---- */
+/* === ORIGINAL CALENDAR LOGIC (FIXED) === */
 let current = new Date();
 const today = new Date();
 const daysEl = document.getElementById("days");
@@ -217,6 +190,7 @@ const title = document.getElementById("title");
 
 function render() {
   daysEl.innerHTML = "";
+
   const y = current.getFullYear();
   const m = current.getMonth();
 
@@ -225,34 +199,40 @@ function render() {
     year: "numeric"
   });
 
-  const first = new Date(y, m, 1).getDay();
+  const firstDay = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
-  const prevDays = new Date(y, m, 0).getDate();
+  const prevMonthDays = new Date(y, m, 0).getDate();
 
-  for (let i = first - 1; i >= 0; i--) {
+  /* PREVIOUS MONTH */
+  for (let i = firstDay - 1; i >= 0; i--) {
     const d = document.createElement("div");
     d.className = "day other";
-    d.textContent = prevDays - i;
+    d.textContent = prevMonthDays - i;
     d.onclick = () => { current.setMonth(m - 1); render(); };
     daysEl.appendChild(d);
   }
 
+  /* CURRENT MONTH */
   for (let d = 1; d <= daysInMonth; d++) {
     const el = document.createElement("div");
     el.className = "day";
     el.textContent = d;
+
     if (
       d === today.getDate() &&
       m === today.getMonth() &&
       y === today.getFullYear()
     ) el.classList.add("today");
+
     daysEl.appendChild(el);
   }
 
+  /* NEXT MONTH */
+  let nextDay = 1;
   while (daysEl.children.length < 42) {
     const d = document.createElement("div");
     d.className = "day other";
-    d.textContent = daysEl.children.length;
+    d.textContent = nextDay++;
     d.onclick = () => { current.setMonth(m + 1); render(); };
     daysEl.appendChild(d);
   }
