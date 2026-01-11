@@ -29,6 +29,11 @@ body {
   display: flex;
 }
 
+  body.embed .controls,
+body.in-notion .controls {
+  display: none !important;
+}
+
 body.embed {
   background: transparent;
 }
@@ -375,10 +380,16 @@ document.getElementById("next").onclick = () => {
 
 renderCalendar(currentDate);
 
-// Embed mode
-if (new URLSearchParams(window.location.search).has("embed")) {
-  document.body.classList.add("embed");
+// Embed / Notion detection
+const params = new URLSearchParams(window.location.search);
+
+if (
+  params.has("embed") ||
+  window.self !== window.top
+) {
+  document.body.classList.add("embed", "in-notion");
 }
 </script>
 </body>
+
 </html>
