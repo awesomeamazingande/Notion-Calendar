@@ -14,30 +14,31 @@
   --weekday-text: #777;
   --today-bg: #2f2f2f;
   --today-text: #ffffff;
+
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 * { box-sizing: border-box; }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
   background: transparent;
-  overflow: hidden;
 }
 
-/* Layout frame — THIS is what Notion measures */
-.layout-frame {
-  position: relative;
+/* THIS is what Notion measures */
+#layout {
   width: 360px;
   height: 360px;
+  position: relative;
 }
 
-/* Scale frame — visual scaling only */
-.scale-frame {
+/* Visual scaling only */
+#scale {
   transform-origin: top left;
 }
 
-/* Fixed design — never resizes */
+/* Fixed design — NEVER resizes internally */
 .calendar {
   width: 360px;
   height: 360px;
@@ -49,19 +50,40 @@ body {
   position: relative;
 }
 
-/* SETTINGS */
-.settings {
+/* SETTINGS ICON */
+.settings-btn {
   position: absolute;
   top: 8px;
   right: 8px;
-  font-size: 12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
   opacity: 0;
   transition: opacity 0.2s;
-  cursor: pointer;
 }
 
-.calendar:hover .settings {
+.calendar:hover .settings-btn {
   opacity: 1;
+}
+
+/* SETTINGS PANEL */
+.settings-panel {
+  position: absolute;
+  top: 36px;
+  right: 8px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  display: none;
+  z-index: 10;
 }
 
 /* HEADER */
@@ -133,10 +155,15 @@ body {
 
 <body>
 
-<div class="layout-frame" id="layout">
-  <div class="scale-frame" id="scale">
+<div id="layout">
+  <div id="scale">
     <div class="calendar">
-      <div class="settings">Customize</div>
+
+      <div class="settings-btn" id="settingsBtn">⚙</div>
+      <div class="settings-panel" id="settingsPanel">
+        Customization panel<br>
+        (you can add options here)
+      </div>
 
       <div class="header">
         <button id="prev">‹</button>
@@ -155,10 +182,10 @@ body {
 </div>
 
 <script>
-/* ---- TRUE RESPONSIVE SCALING ---- */
+/* ---- SCALING (NO CLIPPING) ---- */
 const BASE = 360;
 const layout = document.getElementById("layout");
-const scaleFrame = document.getElementById("scale");
+const scaleEl = document.getElementById("scale");
 
 function rescale() {
   const w = document.documentElement.clientWidth;
@@ -166,7 +193,7 @@ function rescale() {
 
   const scale = Math.min(w / BASE, h / BASE);
 
-  scaleFrame.style.transform = `scale(${scale})`;
+  scaleEl.style.transform = `scale(${scale})`;
   layout.style.width = `${BASE * scale}px`;
   layout.style.height = `${BASE * scale}px`;
 }
@@ -174,7 +201,15 @@ function rescale() {
 new ResizeObserver(rescale).observe(document.documentElement);
 rescale();
 
-/* ---- CALENDAR LOGIC (unchanged) ---- */
+/* ---- SETTINGS TOGGLE ---- */
+const btn = document.getElementById("settingsBtn");
+const panel = document.getElementById("settingsPanel");
+
+btn.onclick = () => {
+  panel.style.display = panel.style.display === "block" ? "none" : "block";
+};
+
+/* ---- CALENDAR LOGIC ---- */
 let current = new Date();
 const today = new Date();
 const daysEl = document.getElementById("days");
