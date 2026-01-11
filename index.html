@@ -10,23 +10,21 @@
   --card-bg: #f3f3f3;
   --header-bg: #2f2f2f;
   --header-text: #ffffff;
-  --day-text: #111111;
-  --weekday-text: #777777;
+  --day-text: #111;
+  --weekday-text: #777;
   --today-bg: #2f2f2f;
   --today-text: #ffffff;
   --radius: 14px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   font-family: var(--font);
-  background: transparent;
   display: flex;
+  background: transparent;
 }
 
 /* ================= CONTROLS ================= */
@@ -43,10 +41,9 @@ body.edit .controls {
 }
 
 .controls h3 {
-  margin: 0 0 14px;
   text-align: center;
+  margin: 0 0 14px;
   font-size: 14px;
-  font-weight: 600;
 }
 
 .control {
@@ -72,22 +69,13 @@ body.edit .controls {
   padding: 0;
 }
 
-.controls input[type="color"]::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
-
-.controls input[type="color"]::-webkit-color-swatch {
-  border-radius: 50%;
-  border: none;
-}
-
 /* ================= CALENDAR ================= */
 .calendar-wrapper {
   flex: 1;
   padding: 16px;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
 }
 
 .calendar {
@@ -108,38 +96,31 @@ body.edit .controls {
   padding: 6px 8px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 10px;
-  font-weight: 600;
 }
 
 .header span {
   flex: 1;
   text-align: center;
+  font-weight: 600;
 }
 
 .nav {
-  background: transparent;
   border: none;
+  background: transparent;
   color: inherit;
   font-size: 18px;
   cursor: pointer;
-  border-radius: 6px;
 }
 
-.nav:hover {
-  background: rgba(255,255,255,0.15);
-}
-
-.weekdays,
-.days {
+.weekdays, .days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
 
 .weekdays div {
-  text-align: center;
   font-size: 11px;
+  text-align: center;
   color: var(--weekday-text);
 }
 
@@ -150,12 +131,12 @@ body.edit .controls {
 
 .day {
   aspect-ratio: 1 / 1;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 13px;
   color: var(--day-text);
-  border-radius: 50%;
 }
 
 .today {
@@ -169,40 +150,31 @@ body.edit .controls {
   cursor: pointer;
 }
 
-.other-month:hover {
-  opacity: 0.55;
-}
-
-/* ================= EDIT TOGGLE ================= */
+/* ================= EDIT BUTTON ================= */
 #editToggle {
   position: fixed;
-  bottom: 14px;
-  right: 14px;
-  width: 36px;
-  height: 36px;
+  bottom: 16px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   border: none;
   background: #2f2f2f;
-  color: #ffffff;
+  color: #fff;
   font-size: 18px;
   cursor: pointer;
-  opacity: 0.6;
-  display: none;
 }
 
-#editToggle:hover {
-  opacity: 1;
-}
-
-body:not(.embed) #editToggle {
-  display: block;
+/* Hide ALL edit UI in embed mode */
+body.embed .controls,
+body.embed #editToggle {
+  display: none !important;
 }
 </style>
 </head>
 
 <body>
 
-<!-- CONTROLS -->
 <div class="controls">
   <h3>Customize</h3>
 
@@ -232,7 +204,6 @@ body:not(.embed) #editToggle {
   </div>
 </div>
 
-<!-- CALENDAR -->
 <div class="calendar-wrapper">
   <div class="calendar">
     <div class="header">
@@ -250,44 +221,36 @@ body:not(.embed) #editToggle {
   </div>
 </div>
 
-<button id="editToggle" title="Toggle edit mode">⚙️</button>
+<button id="editToggle" title="Edit calendar">⚙️</button>
 
 <script>
 const root = document.documentElement;
 const daysEl = document.getElementById("days");
-const monthYearEl = document.getElementById("monthYear");
-const editToggle = document.getElementById("editToggle");
+const monthYear = document.getElementById("monthYear");
 
-/* Detect embed (Notion) */
-if (window.self !== window.top) {
+/* EMBED MODE (Notion) */
+const params = new URLSearchParams(location.search);
+if (params.has("embed")) {
   document.body.classList.add("embed");
 }
 
-/* Edit mode */
-const params = new URLSearchParams(window.location.search);
-if (params.has("edit") || localStorage.getItem("editMode") === "true") {
-  document.body.classList.add("edit");
-}
-
-editToggle.addEventListener("click", () => {
+/* EDIT TOGGLE */
+document.getElementById("editToggle").onclick = () => {
   document.body.classList.toggle("edit");
-  localStorage.setItem("editMode", document.body.classList.contains("edit"));
-});
+};
 
-/* Load saved colors */
+/* COLOR SETTINGS */
 const saved = JSON.parse(localStorage.getItem("calendarSettings") || "{}");
-for (const k in saved) {
-  root.style.setProperty(`--${k}`, saved[k]);
-}
+for (const k in saved) root.style.setProperty(`--${k}`, saved[k]);
 
-function bind(id, variable) {
+function bind(id, cssVar) {
   const el = document.getElementById(id);
-  el.value = getComputedStyle(root).getPropertyValue(`--${variable}`).trim();
-  el.addEventListener("input", e => {
-    root.style.setProperty(`--${variable}`, e.target.value);
-    saved[variable] = e.target.value;
+  el.value = getComputedStyle(root).getPropertyValue(`--${cssVar}`).trim();
+  el.oninput = e => {
+    root.style.setProperty(`--${cssVar}`, e.target.value);
+    saved[cssVar] = e.target.value;
     localStorage.setItem("calendarSettings", JSON.stringify(saved));
-  });
+  };
 }
 
 bind("cardBg", "card-bg");
@@ -296,32 +259,28 @@ bind("dayText", "day-text");
 bind("weekdayText", "weekday-text");
 bind("todayBg", "today-bg");
 
-/* Calendar logic */
+/* CALENDAR LOGIC */
 let current = new Date();
 const today = new Date();
 
-function render(date) {
+function render() {
   daysEl.innerHTML = "";
-  const y = date.getFullYear();
-  const m = date.getMonth();
+  const y = current.getFullYear();
+  const m = current.getMonth();
 
-  monthYearEl.textContent = date.toLocaleDateString(undefined, {
-    month: "long",
-    year: "numeric"
+  monthYear.textContent = current.toLocaleDateString(undefined, {
+    month: "long", year: "numeric"
   });
 
-  const firstDay = new Date(y, m, 1).getDay();
+  const first = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
-  const prevMonthDays = new Date(y, m, 0).getDate();
+  const prevDays = new Date(y, m, 0).getDate();
 
-  for (let i = firstDay - 1; i >= 0; i--) {
+  for (let i = first - 1; i >= 0; i--) {
     const d = document.createElement("div");
     d.className = "day other-month";
-    d.textContent = prevMonthDays - i;
-    d.onclick = () => {
-      current.setMonth(current.getMonth() - 1);
-      render(current);
-    };
+    d.textContent = prevDays - i;
+    d.onclick = () => { current.setMonth(m - 1); render(); };
     daysEl.appendChild(d);
   }
 
@@ -329,40 +288,31 @@ function render(date) {
     const el = document.createElement("div");
     el.className = "day";
     el.textContent = d;
-
     if (
       d === today.getDate() &&
       m === today.getMonth() &&
       y === today.getFullYear()
-    ) {
-      el.classList.add("today");
-    }
+    ) el.classList.add("today");
     daysEl.appendChild(el);
   }
 
   while (daysEl.children.length < 42) {
     const d = document.createElement("div");
     d.className = "day other-month";
-    d.textContent = daysEl.children.length - (firstDay + daysInMonth) + 1;
-    d.onclick = () => {
-      current.setMonth(current.getMonth() + 1);
-      render(current);
-    };
+    d.textContent = daysEl.children.length - (first + daysInMonth) + 1;
+    d.onclick = () => { current.setMonth(m + 1); render(); };
     daysEl.appendChild(d);
   }
 }
 
 document.getElementById("prev").onclick = () => {
-  current.setMonth(current.getMonth() - 1);
-  render(current);
+  current.setMonth(current.getMonth() - 1); render();
 };
-
 document.getElementById("next").onclick = () => {
-  current.setMonth(current.getMonth() + 1);
-  render(current);
+  current.setMonth(current.getMonth() + 1); render();
 };
 
-render(current);
+render();
 </script>
 
 </body>
