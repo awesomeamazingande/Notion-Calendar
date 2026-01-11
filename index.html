@@ -21,16 +21,15 @@
 
 body {
   margin: 0;
-  background: transparent;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+  background: transparent;
 }
 
-/* ===== CALENDAR (FIXED DESIGN SIZE) ===== */
+/* FIXED, STABLE SIZE */
 .calendar {
   width: 360px;
   height: 360px;
@@ -40,33 +39,9 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
-
-  /* 🔑 THIS IS THE FIX */
-  zoom: calc(min(100vw, 100vh) / 360);
 }
 
-/* ===== EDIT BUTTON ===== */
-.edit-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0,0,0,0.65);
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.calendar:hover .edit-button {
-  opacity: 1;
-}
-
-/* ===== HEADER ===== */
+/* HEADER */
 .header {
   background: var(--header-bg);
   color: var(--header-text);
@@ -91,7 +66,7 @@ body {
   cursor: pointer;
 }
 
-/* ===== WEEKDAYS ===== */
+/* WEEKDAYS */
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -104,7 +79,7 @@ body {
   color: var(--weekday-text);
 }
 
-/* ===== DAYS ===== */
+/* DAYS */
 .days {
   flex: 1;
   display: grid;
@@ -131,19 +106,12 @@ body {
   opacity: 0.35;
   cursor: pointer;
 }
-
-/* ===== EMBED MODE ===== */
-body.embed .edit-button {
-  display: none !important;
-}
 </style>
 </head>
 
 <body>
 
 <div class="calendar">
-  <button class="edit-button">⚙️</button>
-
   <div class="header">
     <button id="prev">‹</button>
     <span id="title"></span>
@@ -159,12 +127,6 @@ body.embed .edit-button {
 </div>
 
 <script>
-/* EMBED DETECTION */
-if (new URLSearchParams(location.search).has("embed")) {
-  document.body.classList.add("embed");
-}
-
-/* CALENDAR LOGIC */
 let current = new Date();
 const today = new Date();
 const daysEl = document.getElementById("days");
