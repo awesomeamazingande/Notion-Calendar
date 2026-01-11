@@ -3,23 +3,21 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Resizable Calendar Widget</title>
+<title>Uniform Scale Calendar</title>
 
 <style>
 :root {
   --card-bg: #f3f3f3;
   --header-bg: #2f2f2f;
   --header-text: #ffffff;
-  --day-text: #111111;
-  --weekday-text: #777777;
+  --day-text: #111;
+  --weekday-text: #777;
   --today-bg: #2f2f2f;
   --today-text: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 /* ===== PAGE ===== */
 body {
@@ -44,59 +42,37 @@ body.edit .controls {
   display: block;
 }
 
-.controls h3 {
-  margin: 0 0 14px;
-  text-align: center;
-  font-size: 14px;
-}
-
-.controls label {
-  font-size: 12px;
-  display: block;
-  margin: 12px 0 6px;
-}
-
-.controls input[type="color"] {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-}
-
-/* ===== CALENDAR WRAPPER ===== */
-.wrapper {
+/* ===== STAGE ===== */
+.stage {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 12px;
-  min-width: 0;
-  min-height: 0;
+  overflow: hidden;
 }
 
-/* ===== CALENDAR ===== */
-.calendar {
-  width: 100%;
-  height: 100%;
-  max-width: min(100%, 420px);
-  max-height: min(100%, 420px);
-  aspect-ratio: 1 / 1;
+/* ===== SCALE WRAPPER ===== */
+.scale-wrap {
+  transform-origin: top left;
+}
 
+/* ===== BASE CALENDAR (NEVER RESIZES) ===== */
+.calendar {
+  width: 360px;
+  height: 360px;
   background: var(--card-bg);
   border-radius: 16px;
-  padding: 5%;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;
 }
 
 /* ===== EDIT BUTTON ===== */
 .edit-button {
   position: absolute;
-  top: 6%;
-  right: 6%;
+  top: 10px;
+  right: 10px;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -106,13 +82,11 @@ body.edit .controls {
   font-size: 16px;
   cursor: pointer;
   opacity: 0;
-  pointer-events: none;
   transition: opacity 0.2s ease;
 }
 
 .calendar:hover .edit-button {
   opacity: 1;
-  pointer-events: auto;
 }
 
 /* ===== HEADER ===== */
@@ -120,7 +94,7 @@ body.edit .controls {
   background: var(--header-bg);
   color: var(--header-text);
   border-radius: 10px;
-  padding: 0.6em;
+  padding: 8px;
   display: flex;
   align-items: center;
 }
@@ -129,14 +103,14 @@ body.edit .controls {
   flex: 1;
   text-align: center;
   font-weight: 600;
-  font-size: clamp(0.85rem, 2.5vw, 1rem);
+  font-size: 16px;
 }
 
 .header button {
   background: none;
   border: none;
   color: inherit;
-  font-size: clamp(1rem, 3vw, 1.2rem);
+  font-size: 20px;
   cursor: pointer;
 }
 
@@ -144,22 +118,22 @@ body.edit .controls {
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin-top: 0.6em;
+  margin-top: 8px;
 }
 
 .weekdays div {
   text-align: center;
-  font-size: clamp(0.6rem, 2vw, 0.7rem);
+  font-size: 11px;
   color: var(--weekday-text);
 }
 
-/* ===== DAYS GRID ===== */
+/* ===== DAYS ===== */
 .days {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.4em;
-  margin-top: 0.4em;
+  gap: 6px;
+  margin-top: 6px;
 }
 
 .day {
@@ -167,9 +141,8 @@ body.edit .controls {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: clamp(0.65rem, 2.5vw, 0.85rem);
+  font-size: 13px;
   color: var(--day-text);
-  cursor: default;
 }
 
 .today {
@@ -194,39 +167,26 @@ body.embed .edit-button {
 
 <div class="controls">
   <h3>Customize</h3>
-
-  <label>Card background</label>
-  <input type="color" id="card">
-
-  <label>Header background</label>
-  <input type="color" id="header">
-
-  <label>Day numbers</label>
-  <input type="color" id="day">
-
-  <label>Weekday labels</label>
-  <input type="color" id="weekday">
-
-  <label>Today highlight</label>
-  <input type="color" id="today">
 </div>
 
-<div class="wrapper">
-  <div class="calendar">
-    <button class="edit-button" id="editBtn">⚙️</button>
+<div class="stage">
+  <div class="scale-wrap" id="scaleWrap">
+    <div class="calendar">
+      <button class="edit-button" id="editBtn">⚙️</button>
 
-    <div class="header">
-      <button id="prev">‹</button>
-      <span id="title"></span>
-      <button id="next">›</button>
+      <div class="header">
+        <button id="prev">‹</button>
+        <span id="title"></span>
+        <button id="next">›</button>
+      </div>
+
+      <div class="weekdays">
+        <div>S</div><div>M</div><div>T</div>
+        <div>W</div><div>T</div><div>F</div><div>S</div>
+      </div>
+
+      <div class="days" id="days"></div>
     </div>
-
-    <div class="weekdays">
-      <div>S</div><div>M</div><div>T</div>
-      <div>W</div><div>T</div><div>F</div><div>S</div>
-    </div>
-
-    <div class="days" id="days"></div>
   </div>
 </div>
 
@@ -236,26 +196,9 @@ if (new URLSearchParams(location.search).has("embed")) {
   document.body.classList.add("embed");
 }
 
-/* ===== EDIT MODE TOGGLE ===== */
-document.getElementById("editBtn").onclick = () => {
+/* ===== EDIT MODE ===== */
+document.getElementById("editBtn").onclick = () =>
   document.body.classList.toggle("edit");
-};
-
-/* ===== COLOR CONTROLS ===== */
-const root = document.documentElement;
-const map = {
-  card: "card-bg",
-  header: "header-bg",
-  day: "day-text",
-  weekday: "weekday-text",
-  today: "today-bg"
-};
-
-for (const id in map) {
-  document.getElementById(id).oninput = e => {
-    root.style.setProperty(`--${map[id]}`, e.target.value);
-  };
-}
 
 /* ===== CALENDAR LOGIC ===== */
 let current = new Date();
@@ -265,7 +208,6 @@ const title = document.getElementById("title");
 
 function render() {
   daysEl.innerHTML = "";
-
   const y = current.getFullYear();
   const m = current.getMonth();
 
@@ -274,59 +216,55 @@ function render() {
     year: "numeric"
   });
 
-  const firstDay = new Date(y, m, 1).getDay();
+  const first = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
-  const prevMonthDays = new Date(y, m, 0).getDate();
+  const prevDays = new Date(y, m, 0).getDate();
 
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const el = document.createElement("div");
-    el.className = "day other";
-    el.textContent = prevMonthDays - i;
-    el.onclick = () => { current.setMonth(m - 1); safeRender(); };
-    daysEl.appendChild(el);
+  for (let i = first - 1; i >= 0; i--) {
+    const d = document.createElement("div");
+    d.className = "day other";
+    d.textContent = prevDays - i;
+    d.onclick = () => { current.setMonth(m - 1); render(); };
+    daysEl.appendChild(d);
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
     const el = document.createElement("div");
     el.className = "day";
     el.textContent = d;
-
     if (
       d === today.getDate() &&
       m === today.getMonth() &&
       y === today.getFullYear()
     ) el.classList.add("today");
-
     daysEl.appendChild(el);
   }
 
   while (daysEl.children.length < 42) {
-    const el = document.createElement("div");
-    el.className = "day other";
-    el.textContent = daysEl.children.length;
-    el.onclick = () => { current.setMonth(m + 1); safeRender(); };
-    daysEl.appendChild(el);
+    const d = document.createElement("div");
+    d.className = "day other";
+    d.textContent = daysEl.children.length;
+    d.onclick = () => { current.setMonth(m + 1); render(); };
+    daysEl.appendChild(d);
   }
 }
 
-/* ===== SAFE RENDER ===== */
-function safeRender() {
-  requestAnimationFrame(render);
+/* ===== UNIFORM SCALING ===== */
+const BASE = 360;
+const wrap = document.getElementById("scaleWrap");
+
+function scale() {
+  const stage = document.querySelector(".stage");
+  const s = Math.min(
+    stage.clientWidth / BASE,
+    stage.clientHeight / BASE
+  );
+  wrap.style.transform = `scale(${s})`;
 }
 
-window.addEventListener("resize", safeRender);
-safeRender();
-
-/* ===== NAV ===== */
-document.getElementById("prev").onclick = () => {
-  current.setMonth(current.getMonth() - 1);
-  safeRender();
-};
-
-document.getElementById("next").onclick = () => {
-  current.setMonth(current.getMonth() + 1);
-  safeRender();
-};
+window.addEventListener("resize", scale);
+render();
+scale();
 </script>
 
 </body>
