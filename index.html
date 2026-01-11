@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Notion Calendar Widget</title>
+<title>Calendar Widget</title>
 
 <style>
 :root {
@@ -14,15 +14,13 @@
   --weekday-text: #777;
   --today-bg: #2f2f2f;
   --today-text: #ffffff;
-  --radius: 14px;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: var(--font);
   display: flex;
   background: transparent;
 }
@@ -41,36 +39,28 @@ body.edit .controls {
 }
 
 .controls h3 {
-  text-align: center;
   margin: 0 0 14px;
+  text-align: center;
   font-size: 14px;
+  font-weight: 600;
 }
 
-.control {
-  margin-bottom: 14px;
-}
-
-.control label {
+.controls label {
   font-size: 12px;
-  margin-bottom: 6px;
   display: block;
+  margin: 10px 0 6px;
 }
 
-/* Circular color inputs */
 .controls input[type="color"] {
-  appearance: none;
   width: 28px;
   height: 28px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  background: none;
-  box-shadow: 0 0 0 1px #ccc;
-  padding: 0;
 }
 
 /* ================= CALENDAR ================= */
-.calendar-wrapper {
+.wrapper {
   flex: 1;
   padding: 16px;
   display: flex;
@@ -79,24 +69,23 @@ body.edit .controls {
 }
 
 .calendar {
-  width: 100%;
-  max-width: 340px;
+  width: 320px;
   aspect-ratio: 1 / 1;
   background: var(--card-bg);
-  border-radius: var(--radius);
+  border-radius: 14px;
   padding: 12px;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .header {
   background: var(--header-bg);
   color: var(--header-text);
-  border-radius: 10px;
-  padding: 6px 8px;
+  padding: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
 }
 
 .header span {
@@ -105,22 +94,23 @@ body.edit .controls {
   font-weight: 600;
 }
 
-.nav {
+.header button {
+  background: none;
   border: none;
-  background: transparent;
   color: inherit;
   font-size: 18px;
   cursor: pointer;
 }
 
-.weekdays, .days {
+.weekdays,
+.days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
 
 .weekdays div {
-  font-size: 11px;
   text-align: center;
+  font-size: 11px;
   color: var(--weekday-text);
 }
 
@@ -131,10 +121,10 @@ body.edit .controls {
 
 .day {
   aspect-ratio: 1 / 1;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
   font-size: 13px;
   color: var(--day-text);
 }
@@ -142,32 +132,40 @@ body.edit .controls {
 .today {
   background: var(--today-bg);
   color: var(--today-text);
-  font-weight: 600;
 }
 
-.other-month {
+.other {
   opacity: 0.35;
   cursor: pointer;
 }
 
 /* ================= EDIT BUTTON ================= */
-#editToggle {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  width: 38px;
-  height: 38px;
+.edit-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: none;
-  background: #2f2f2f;
+  background: rgba(0,0,0,0.65);
   color: #fff;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
 }
 
-/* Hide ALL edit UI in embed mode */
+/* Show button ONLY on hover */
+.calendar:hover .edit-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ================= EMBED MODE ================= */
 body.embed .controls,
-body.embed #editToggle {
+body.embed .edit-button {
   display: none !important;
 }
 </style>
@@ -178,38 +176,30 @@ body.embed #editToggle {
 <div class="controls">
   <h3>Customize</h3>
 
-  <div class="control">
-    <label>Card Background</label>
-    <input type="color" id="cardBg">
-  </div>
+  <label>Card background</label>
+  <input type="color" id="card">
 
-  <div class="control">
-    <label>Header Background</label>
-    <input type="color" id="headerBg">
-  </div>
+  <label>Header background</label>
+  <input type="color" id="header">
 
-  <div class="control">
-    <label>Day Numbers</label>
-    <input type="color" id="dayText">
-  </div>
+  <label>Day numbers</label>
+  <input type="color" id="day">
 
-  <div class="control">
-    <label>Weekday Labels</label>
-    <input type="color" id="weekdayText">
-  </div>
+  <label>Weekday labels</label>
+  <input type="color" id="weekday">
 
-  <div class="control">
-    <label>Today Highlight</label>
-    <input type="color" id="todayBg">
-  </div>
+  <label>Today highlight</label>
+  <input type="color" id="today">
 </div>
 
-<div class="calendar-wrapper">
-  <div class="calendar">
+<div class="wrapper">
+  <div class="calendar" id="calendar">
+    <button class="edit-button" id="editBtn" title="Customize">⚙️</button>
+
     <div class="header">
-      <button class="nav" id="prev">‹</button>
-      <span id="monthYear"></span>
-      <button class="nav" id="next">›</button>
+      <button id="prev">‹</button>
+      <span id="title"></span>
+      <button id="next">›</button>
     </div>
 
     <div class="weekdays">
@@ -221,54 +211,44 @@ body.embed #editToggle {
   </div>
 </div>
 
-<button id="editToggle" title="Edit calendar">⚙️</button>
-
 <script>
-const root = document.documentElement;
-const daysEl = document.getElementById("days");
-const monthYear = document.getElementById("monthYear");
-
-/* EMBED MODE (Notion) */
-const params = new URLSearchParams(location.search);
-if (params.has("embed")) {
+/* EMBED MODE (Notion uses ?embed) */
+if (new URLSearchParams(location.search).has("embed")) {
   document.body.classList.add("embed");
 }
 
 /* EDIT TOGGLE */
-document.getElementById("editToggle").onclick = () => {
+document.getElementById("editBtn").onclick = () => {
   document.body.classList.toggle("edit");
 };
 
-/* COLOR SETTINGS */
-const saved = JSON.parse(localStorage.getItem("calendarSettings") || "{}");
-for (const k in saved) root.style.setProperty(`--${k}`, saved[k]);
+/* COLOR CONTROLS */
+const root = document.documentElement;
+const map = {
+  card: "card-bg",
+  header: "header-bg",
+  day: "day-text",
+  weekday: "weekday-text",
+  today: "today-bg"
+};
 
-function bind(id, cssVar) {
-  const el = document.getElementById(id);
-  el.value = getComputedStyle(root).getPropertyValue(`--${cssVar}`).trim();
-  el.oninput = e => {
-    root.style.setProperty(`--${cssVar}`, e.target.value);
-    saved[cssVar] = e.target.value;
-    localStorage.setItem("calendarSettings", JSON.stringify(saved));
-  };
+for (const id in map) {
+  document.getElementById(id).oninput = e =>
+    root.style.setProperty(`--${map[id]}`, e.target.value);
 }
 
-bind("cardBg", "card-bg");
-bind("headerBg", "header-bg");
-bind("dayText", "day-text");
-bind("weekdayText", "weekday-text");
-bind("todayBg", "today-bg");
-
-/* CALENDAR LOGIC */
+/* CALENDAR */
 let current = new Date();
 const today = new Date();
+const daysEl = document.getElementById("days");
+const title = document.getElementById("title");
 
 function render() {
   daysEl.innerHTML = "";
   const y = current.getFullYear();
   const m = current.getMonth();
 
-  monthYear.textContent = current.toLocaleDateString(undefined, {
+  title.textContent = current.toLocaleDateString(undefined, {
     month: "long", year: "numeric"
   });
 
@@ -278,7 +258,7 @@ function render() {
 
   for (let i = first - 1; i >= 0; i--) {
     const d = document.createElement("div");
-    d.className = "day other-month";
+    d.className = "day other";
     d.textContent = prevDays - i;
     d.onclick = () => { current.setMonth(m - 1); render(); };
     daysEl.appendChild(d);
@@ -298,8 +278,8 @@ function render() {
 
   while (daysEl.children.length < 42) {
     const d = document.createElement("div");
-    d.className = "day other-month";
-    d.textContent = daysEl.children.length - (first + daysInMonth) + 1;
+    d.className = "day other";
+    d.textContent = daysEl.children.length;
     d.onclick = () => { current.setMonth(m + 1); render(); };
     daysEl.appendChild(d);
   }
