@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Uniform Scale Calendar</title>
+<title>Notion Calendar Widget</title>
 
 <style>
 :root {
@@ -19,44 +19,18 @@
 
 * { box-sizing: border-box; }
 
-/* ===== PAGE ===== */
 body {
   margin: 0;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
   background: transparent;
-  overflow: hidden;
-}
-
-/* ===== CUSTOMIZATION PANEL ===== */
-.controls {
-  width: 260px;
-  padding: 16px;
-  background: #ffffff;
-  border-right: 1px solid #ddd;
-  display: none;
-}
-
-body.edit .controls {
-  display: block;
-}
-
-/* ===== STAGE ===== */
-.stage {
-  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
 }
 
-/* ===== SCALE WRAPPER ===== */
-.scale-wrap {
-  transform-origin: top left;
-}
-
-/* ===== BASE CALENDAR (NEVER RESIZES) ===== */
+/* ===== CALENDAR (FIXED DESIGN SIZE) ===== */
 .calendar {
   width: 360px;
   height: 360px;
@@ -66,6 +40,9 @@ body.edit .controls {
   display: flex;
   flex-direction: column;
   position: relative;
+
+  /* 🔑 THIS IS THE FIX */
+  zoom: calc(min(100vw, 100vh) / 360);
 }
 
 /* ===== EDIT BUTTON ===== */
@@ -156,7 +133,6 @@ body.edit .controls {
 }
 
 /* ===== EMBED MODE ===== */
-body.embed .controls,
 body.embed .edit-button {
   display: none !important;
 }
@@ -165,42 +141,30 @@ body.embed .edit-button {
 
 <body>
 
-<div class="controls">
-  <h3>Customize</h3>
-</div>
+<div class="calendar">
+  <button class="edit-button">⚙️</button>
 
-<div class="stage">
-  <div class="scale-wrap" id="scaleWrap">
-    <div class="calendar">
-      <button class="edit-button" id="editBtn">⚙️</button>
-
-      <div class="header">
-        <button id="prev">‹</button>
-        <span id="title"></span>
-        <button id="next">›</button>
-      </div>
-
-      <div class="weekdays">
-        <div>S</div><div>M</div><div>T</div>
-        <div>W</div><div>T</div><div>F</div><div>S</div>
-      </div>
-
-      <div class="days" id="days"></div>
-    </div>
+  <div class="header">
+    <button id="prev">‹</button>
+    <span id="title"></span>
+    <button id="next">›</button>
   </div>
+
+  <div class="weekdays">
+    <div>S</div><div>M</div><div>T</div>
+    <div>W</div><div>T</div><div>F</div><div>S</div>
+  </div>
+
+  <div class="days" id="days"></div>
 </div>
 
 <script>
-/* ===== EMBED DETECTION ===== */
+/* EMBED DETECTION */
 if (new URLSearchParams(location.search).has("embed")) {
   document.body.classList.add("embed");
 }
 
-/* ===== EDIT MODE ===== */
-document.getElementById("editBtn").onclick = () =>
-  document.body.classList.toggle("edit");
-
-/* ===== CALENDAR LOGIC ===== */
+/* CALENDAR LOGIC */
 let current = new Date();
 const today = new Date();
 const daysEl = document.getElementById("days");
@@ -249,22 +213,17 @@ function render() {
   }
 }
 
-/* ===== UNIFORM SCALING ===== */
-const BASE = 360;
-const wrap = document.getElementById("scaleWrap");
+document.getElementById("prev").onclick = () => {
+  current.setMonth(current.getMonth() - 1);
+  render();
+};
 
-function scale() {
-  const stage = document.querySelector(".stage");
-  const s = Math.min(
-    stage.clientWidth / BASE,
-    stage.clientHeight / BASE
-  );
-  wrap.style.transform = `scale(${s})`;
-}
+document.getElementById("next").onclick = () => {
+  current.setMonth(current.getMonth() + 1);
+  render();
+};
 
-window.addEventListener("resize", scale);
 render();
-scale();
 </script>
 
 </body>
